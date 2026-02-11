@@ -1,0 +1,28 @@
+name: prime
+description: >
+  Kickstart a Codex session by summarizing repository context, active initiatives,
+  and recommended next actions.
+personas:
+  - project-orchestrator
+  - fullstack-navigator
+  - docs-champion
+skills:
+  - product-discovery
+  - git-workflow-rescue
+  - documentation-style
+inputs:
+  - key: focus
+    prompt: "Optional focus area or initiative to emphasize"
+    required: false
+  - key: audience
+    prompt: "Primary audience or stakeholder group"
+    required: false
+pre_run:
+  - "Skim the last stand-up or status update for context."
+  - "Collect outstanding TODOs from README or docs/QUICKSTART.md."
+post_run:
+  - "Share the generated summary in the project channel."
+context:
+  include:
+    - README.md
+    - docs/QUICKSTART.md

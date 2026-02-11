@@ -1,0 +1,28 @@
+name: deps
+description: >
+  Audit and update project dependencies with a focus on security and maintainability.
+personas:
+  - security-analyst
+  - backend-architect
+skills:
+  - dependency-health
+  - security-audit
+  - release-operations
+inputs:
+  - key: packages
+    prompt: "Specific packages or ecosystems to inspect (optional)"
+    required: false
+  - key: timeline
+    prompt: "Deadline or milestone driving the upgrade"
+    required: false
+pre_run:
+  - "Sync vulnerability reports and outstanding Dependabot alerts."
+  - "Capture recent build failures related to dependencies."
+post_run:
+  - "Document upgrade plan and notify stakeholders."
+context:
+  include:
+    - package.json
+    - requirements.txt
+    - pyproject.toml
+    - go.mod

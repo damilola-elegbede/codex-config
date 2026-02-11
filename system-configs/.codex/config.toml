@@ -1,0 +1,5 @@
+# Codex global configuration
+# Place project overrides in .codex/config.toml within a repository.
+# Example settings (uncomment and adjust):
+# model = "gpt-5"
+# approval_mode = "auto"
