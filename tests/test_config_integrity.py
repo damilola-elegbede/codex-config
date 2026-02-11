@@ -19,15 +19,15 @@ def test_persona_required_fields():
 
 def test_skill_required_fields():
     required = {"name", "description", "tags"}
-    for path in SKILLS_DIR.glob("*.md"):
-        skill = load_skill(path.stem)
+    for path in SKILLS_DIR.glob("*/SKILL.md"):
+        skill = load_skill(path.parent.name)
         assert required.issubset(skill.data.keys()), f"{path.name} missing required fields"
         assert skill.body.strip(), f"{path.name} body must not be empty"
 
 
 def test_commands_reference_existing_assets():
     persona_slugs = {path.stem for path in PROFILES_DIR.glob("*.md")}
-    skill_slugs = {path.stem for path in SKILLS_DIR.glob("*.md")}
+    skill_slugs = {path.parent.name for path in SKILLS_DIR.glob("*/SKILL.md")}
     for path in COMMANDS_DIR.glob("*.yaml"):
         command = load_command(path.stem)
         assert command["name"] == path.stem

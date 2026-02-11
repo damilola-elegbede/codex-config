@@ -79,6 +79,11 @@ def format_inputs(command: Dict, user_inputs: Dict[str, str]) -> str:
     lines: List[str] = []
     for input_def in command.get("inputs", []):
         key = input_def.get("key")
+        if not isinstance(key, str) or not key.strip():
+            command_name = command.get("name", "unknown")
+            raise ValueError(
+                f"Missing or invalid input 'key' in command '{command_name}': {input_def}"
+            )
         prompt = input_def.get("prompt", key)
         required = input_def.get("required", False)
         value = user_inputs.get(key.replace("-", "_"), "").strip()

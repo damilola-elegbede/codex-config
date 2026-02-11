@@ -110,8 +110,8 @@ validate_configs() {
   fi
 
   echo "Pre-sync validation:"
-  if ! python3 "$REPO_DIR/tests/validate_config.py" >/dev/null 2>&1; then
-    print_error "Validation failed. Run 'make validate' for details."
+  if ! python3 "$REPO_DIR/tests/validate_config.py"; then
+    print_error "Validation failed. See errors above."
     return 1
   fi
   print_success "Configuration validation passed"
@@ -145,8 +145,10 @@ sync_dir() {
   if command -v rsync >/dev/null 2>&1; then
     rsync -a --delete --exclude="README.md" --exclude="*TEMPLATE*" "$source/" "$destination/"
   else
+    tmp_dest="${destination}.tmp.$$"
+    cp -R "$source" "$tmp_dest"
     rm -rf "$destination"
-    cp -R "$source" "$destination"
+    mv "$tmp_dest" "$destination"
   fi
   print_success "$label synced"
 }
@@ -186,6 +188,11 @@ post_sync_validation() {
 }
 
 main() {
+  if ! validate_configs; then
+    print_error "Pre-sync validation failed"
+    return 1
+  fi
+
   if [ "$DRY_RUN" = "true" ]; then
     echo "Preview mode - no changes will be made"
     echo ""
@@ -198,11 +205,6 @@ main() {
     echo "  - $SOURCE_CODEX/scripts -> $TARGET_CODEX/scripts"
     echo "  - $SOURCE_AGENTS/skills -> $TARGET_AGENTS/skills"
     return 0
-  fi
-
-  if ! validate_configs; then
-    print_error "Pre-sync validation failed"
-    return 1
   fi
 
   if [ "$CREATE_BACKUP" = "true" ]; then

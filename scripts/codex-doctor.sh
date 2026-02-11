@@ -44,6 +44,11 @@ print_result() {
   fi
 }
 
+print_warning() {
+  local message="$1"
+  printf "[WARN] %s\n" "$message"
+}
+
 check_command() {
   local cmd="$1"
   local hint="$2"
@@ -51,6 +56,16 @@ check_command() {
     print_result 0 "Command '${cmd}' available."
   else
     print_result 1 "Missing command '${cmd}'. Hint: ${hint}"
+  fi
+}
+
+check_optional_command() {
+  local cmd="$1"
+  local hint="$2"
+  if command -v "$cmd" >/dev/null 2>&1; then
+    print_result 0 "Command '${cmd}' available."
+  else
+    print_warning "Missing optional command '${cmd}'. Hint: ${hint}"
   fi
 }
 
@@ -70,7 +85,7 @@ PY
 check_command python3 "Install Python 3 from python.org or your package manager."
 check_command git "Install Git via https://git-scm.com/."
 check_command node "Install Node.js (https://nodejs.org/)."
-check_command rsync "Optional but recommended for fast syncing."
+check_optional_command rsync "Optional but recommended for fast syncing."
 check_python_module yaml "pip install pyyaml"
 
 if [[ $VERBOSE -eq 1 ]]; then

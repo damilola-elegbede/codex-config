@@ -1,6 +1,6 @@
 # Codex Config
 
-Codex Config packages reusable personas, skills, and command workflows so Codex agents can start productive sessions fast. It follows a Claude-config style layout with validation, documentation, and automation scripts.
+Codex Config packages reusable personas, skills, and command workflows so Codex agents can start productive sessions fast. It follows a Claude-config-style layout with validation, documentation, and automation scripts.
 
 ## Getting Started
 

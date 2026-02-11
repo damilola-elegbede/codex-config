@@ -31,10 +31,13 @@ def validate_personas(errors: List[str]) -> List[str]:
         for field in required_fields:
             if field not in data:
                 errors.append(f"Persona {slug}: missing '{field}' in front matter.")
-        if isinstance(data.get("strengths"), list) and not data["strengths"]:
-            errors.append(f"Persona {slug}: strengths list cannot be empty.")
-        if isinstance(data.get("default_tools"), list) and not data["default_tools"]:
-            errors.append(f"Persona {slug}: default_tools list cannot be empty.")
+        for list_field in ("strengths", "default_tools", "guardrails", "skills"):
+            value = data.get(list_field)
+            if not isinstance(value, list):
+                errors.append(f"Persona {slug}: '{list_field}' must be a list.")
+                continue
+            if not value:
+                errors.append(f"Persona {slug}: {list_field} list cannot be empty.")
         if not persona.body.strip():
             errors.append(f"Persona {slug}: body content is empty.")
     if len(personas) < 10:
@@ -53,7 +56,10 @@ def validate_skills(errors: List[str]) -> List[str]:
         for field in required_fields:
             if field not in data:
                 errors.append(f"Skill {slug}: missing '{field}' in front matter.")
-        if isinstance(data.get("tags"), list) and not data["tags"]:
+        tags = data.get("tags")
+        if not isinstance(tags, list):
+            errors.append(f"Skill {slug}: 'tags' must be a list.")
+        elif not tags:
             errors.append(f"Skill {slug}: tags list cannot be empty.")
         if not skill.body.strip():
             errors.append(f"Skill {slug}: body content is empty.")
@@ -71,6 +77,9 @@ def validate_commands(errors: List[str], personas: List[str], skills: List[str])
             errors.append(f"Command {path.name}: missing description.")
         for kind in ("personas", "skills"):
             values = command.get(kind, [])
+            if not isinstance(values, list):
+                errors.append(f"Command {path.name}: '{kind}' must be a list.")
+                continue
             missing = [value for value in values if value not in (persona_set if kind == "personas" else skill_set)]
             if missing:
                 errors.append(
