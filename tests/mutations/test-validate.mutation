@@ -1,0 +1,7 @@
+--- a/scripts/validate.sh
++++ b/scripts/validate.sh
+@@ -61,3 +61,3 @@ validate_one() {
+     # parsing completed without a token request.
+-    if printf '%s\n' "$error" | grep -Eq 'Model provider .* not found'; then
++    if printf '%s\n' "$error" | grep -Eq 'Model provider .* never found'; then
+         return 0

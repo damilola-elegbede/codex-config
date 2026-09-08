@@ -1,0 +1,6 @@
+# gpt-6-astra + xhigh verified callable against Codex 0.153 on the live
+# ChatGPT Pro account (probed 2026-09-07). scripts/validate.sh forces
+# model_provider="__nonexistent__" and cannot exercise real model/effort
+# compatibility by design; see docs/REFERENCE.md.
+model = "gpt-6-astra"
+model_reasoning_effort = "xhigh"
