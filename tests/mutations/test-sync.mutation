@@ -1,0 +1,5 @@
+--- a/scripts/merge-config.py
++++ b/scripts/merge-config.py
+@@
+-        if key in owned:
++        if False:

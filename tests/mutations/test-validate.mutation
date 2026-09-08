@@ -1,0 +1,5 @@
+--- a/scripts/validate.sh
++++ b/scripts/validate.sh
+@@
+-    if printf '%s\\n' "$error" | grep -Eq 'Model provider .* not found'; then
++    if printf '%s\\n' "$error" | grep -Eq 'Model provider .* never found'; then

@@ -1,0 +1,5 @@
+--- a/tests/test-policy-agreement.sh
++++ b/tests/test-policy-agreement.sh
+@@
+-    expected = policy[tier]
++    expected = {"model": "mutation", "effort": "mutation"}
