@@ -1,27 +1,18 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help sync doctor validate test clean
+.PHONY: help sync validate test
 
 help:
 	@printf "Available targets:\\n"
 	@printf "  sync      Install Codex configuration into ~/.codex\\n"
-	@printf "  doctor    Run environment diagnostics\\n"
-	@printf "  validate  Run static validators against personas, commands, and skills\\n"
+	@printf "  validate  Validate a staged Codex home (CODEX_HOME required)\\n"
 	@printf "  test      Execute automated test suite\\n"
-	@printf "  clean     Remove generated artifacts\\n"
 
 sync:
 	@./scripts/sync.sh
 
-doctor:
-	@./scripts/codex-doctor.sh
-
 validate:
-	@python3 tests/validate_config.py
+	@./scripts/validate.sh "$(CODEX_HOME)"
 
 test:
-	@pytest -q
-
-clean:
-	@find . -name "__pycache__" -type d -prune -exec rm -rf {} +
-	@rm -rf .pytest_cache
+	@./tests/test.sh
