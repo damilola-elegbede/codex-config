@@ -65,13 +65,18 @@ validate_one() {
 
     field=$(printf '%s\n' "$error" | sed -n "s/.*unknown configuration field ['\`\"]\([^'\`\"]*\).*/\1/p" | head -n 1)
     if [ -n "$field" ]; then
+        old_ifs=$IFS
+        IFS='
+'
         for file in $files; do
+            IFS=$old_ifs
             line=$(grep -n "^[[:space:]]*$field[[:space:]]*=" "$file" 2>/dev/null | head -n 1 || true)
             if [ -n "$line" ]; then
                 printf '%s:%s: %s\n' "$file" "${line%%:*}" "$error" >&2
                 return 1
             fi
         done
+        IFS=$old_ifs
     fi
     if [ -n "$profile" ]; then
         printf '%s/%s.config.toml:1: %s\n' "$CODEX_HOME" "$profile" "$error" >&2
