@@ -1,5 +1,7 @@
 --- a/tests/test-policy-agreement.sh
 +++ b/tests/test-policy-agreement.sh
-@@
+@@ -23,3 +23,3 @@ for tier in ("think", "code", "review"):
+         profile = tomllib.load(source)
 -    expected = policy[tier]
 +    expected = {"model": "mutation", "effort": "mutation"}
+     actual = {"model": profile.get("model"), "effort": profile.get("model_reasoning_effort")}

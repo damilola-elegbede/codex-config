@@ -46,9 +46,9 @@ PY
 CONFIG_MODE=$(manifest_value config merge)
 OWNED_KEYS=$(manifest_value config_owned_keys "model model_reasoning_effort web_search")
 PROFILES=$(manifest_value profiles true)
-AGENTS_MD=$(manifest_value agents_md true)
-RULES=$(manifest_value rules true)
-HOOKS=$(manifest_value hooks true)
+AGENTS_MD=$(manifest_value agents_md false)
+RULES=$(manifest_value rules false)
+HOOKS=$(manifest_value hooks false)
 case "$CONFIG_MODE" in merge) ;; *) die_preflight "config mode must be merge" ;; esac
 case " $OWNED_KEYS " in
     *" projects "*|*" notice.model_migrations "*|*" tui.model_availability_nux "*) die_preflight "manifest attempts to own a never-owned Codex table" ;;
@@ -76,8 +76,18 @@ stage_file() {
     mkdir -p "$(dirname "$STAGE/$relative")"
     cp "$source" "$STAGE/$relative"
 }
+MANAGED_PROFILES_FILE="$TARGET_CODEX/.codex-config-managed-profiles"
+STALE_LIST="$STAGE/.stale-profiles"
+: > "$STALE_LIST"
 if [ "$PROFILES" = true ]; then
     for source in "$SOURCE_CODEX"/*.config.toml; do [ -e "$source" ] && stage_file "$source" "$(basename "$source")"; done
+    for staged in "$STAGE"/*.config.toml; do [ -e "$staged" ] && basename "$staged"; done > "$STAGE/.codex-config-managed-profiles"
+    if [ -f "$MANAGED_PROFILES_FILE" ]; then
+        while IFS= read -r managed; do
+            [ -n "$managed" ] || continue
+            [ -e "$STAGE/$managed" ] || printf '%s\n' "$managed" >> "$STALE_LIST"
+        done < "$MANAGED_PROFILES_FILE"
+    fi
 fi
 [ "$AGENTS_MD" = true ] && stage_file "$SOURCE_CODEX/AGENTS.md" AGENTS.md || true
 [ "$HOOKS" = true ] && stage_file "$SOURCE_CODEX/hooks.json" hooks.json || true
@@ -97,6 +107,9 @@ print_diff() {
         name=$(basename "$staged")
         diff -u "$TARGET_CODEX/$name" "$staged" 2>/dev/null || true
     done
+    if [ -s "$STALE_LIST" ]; then
+        while IFS= read -r stale; do echo "would remove stale profile: $stale"; done < "$STALE_LIST"
+    fi
     echo "backup would be created: $HOME/.codex-config.backup.<timestamp>"
 }
 if [ "$DRY_RUN" = true ]; then
@@ -117,6 +130,9 @@ if [ "$CREATE_BACKUP" = true ]; then
     }
     backup_file config.toml
     for staged in "$STAGE"/*.config.toml; do [ -e "$staged" ] && backup_file "$(basename "$staged")"; done
+    if [ -s "$STALE_LIST" ]; then
+        while IFS= read -r stale; do backup_file "$stale"; done < "$STALE_LIST"
+    fi
     [ "$AGENTS_MD" = true ] && backup_file AGENTS.md || true
     [ "$HOOKS" = true ] && backup_file hooks.json || true
     [ "$RULES" = true ] && backup_file rules/codex-config.rules || true
@@ -128,11 +144,27 @@ install_file() {
     cp "$STAGE/$relative" "$temporary"
     mv "$temporary" "$TARGET_CODEX/$relative"
 }
-if ! install_file config.toml; then echo "install failed; backup: ${BACKUP:-none}" >&2; exit 3; fi
-for staged in "$STAGE"/*.config.toml; do [ -e "$staged" ] && install_file "$(basename "$staged")"; done
-[ "$AGENTS_MD" = true ] && [ -f "$STAGE/AGENTS.md" ] && install_file AGENTS.md || true
-[ "$HOOKS" = true ] && [ -f "$STAGE/hooks.json" ] && install_file hooks.json || true
-[ "$RULES" = true ] && [ -f "$STAGE/rules/codex-config.rules" ] && install_file rules/codex-config.rules || true
+install_checked() {
+    file=$1
+    if ! install_file "$file"; then
+        echo "install failed for $file; backup: ${BACKUP:-none}" >&2
+        exit 3
+    fi
+}
+install_checked config.toml
+for staged in "$STAGE"/*.config.toml; do
+    [ -e "$staged" ] || continue
+    install_checked "$(basename "$staged")"
+done
+if [ "$AGENTS_MD" = true ] && [ -f "$STAGE/AGENTS.md" ]; then install_checked AGENTS.md; fi
+if [ "$HOOKS" = true ] && [ -f "$STAGE/hooks.json" ]; then install_checked hooks.json; fi
+if [ "$RULES" = true ] && [ -f "$STAGE/rules/codex-config.rules" ]; then install_checked rules/codex-config.rules; fi
+if [ "$PROFILES" = true ]; then
+    install_checked .codex-config-managed-profiles
+    if [ -s "$STALE_LIST" ]; then
+        while IFS= read -r stale; do rm -f "$TARGET_CODEX/$stale"; done < "$STALE_LIST"
+    fi
+fi
 if ! "$ROOT/scripts/validate.sh" "$TARGET_CODEX"; then
     echo "post-install validation failed; backup: ${BACKUP:-none}" >&2
     exit 3

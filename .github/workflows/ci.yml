@@ -11,3 +11,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run hermetic validation and sync tests
         run: ./tests/test.sh
+      - name: Prove mutation guards can fail
+        run: ./tests/run-mutations.sh

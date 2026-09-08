@@ -78,4 +78,23 @@ if PATH="$WORK/bin:$PATH" HOME="$HOME" CODEX_HOME="$LIVE" CODEX_CONFIG_SOURCE="$
 fi
 [ "$(cksum "$LIVE/config.toml")" = "$before" ]
 grep -q 'staging validation failed' "$WORK/bad.out"
+
+printf '%s\n' \
+  'model = "newer"' \
+  'model_reasoning_effort = "high"' > "$SOURCE/config.toml"
+[ -f "$LIVE/think.config.toml" ] || { echo "expected think.config.toml before removal test" >&2; exit 1; }
+rm -f "$SOURCE/think.config.toml"
+PATH="$WORK/bin:$PATH" HOME="$HOME" CODEX_HOME="$LIVE" CODEX_CONFIG_SOURCE="$SOURCE" \
+  CODEX_CONFIG_STATION=test-no-manifest "$ROOT/scripts/sync.sh" --force >"$WORK/remove.out"
+if [ -e "$LIVE/think.config.toml" ]; then
+    echo "stale profile think.config.toml was not removed after deletion from source" >&2
+    exit 1
+fi
+grep -q 'model = "unknown"' "$LIVE/custom.config.toml"
+found_backup=0
+for b in "$HOME"/.codex-config.backup.*; do
+    [ -d "$b" ] || continue
+    [ -f "$b/think.config.toml" ] && found_backup=1
+done
+[ "$found_backup" -eq 1 ] || { echo "no backup captured the removed think.config.toml" >&2; exit 1; }
 echo "PASS test-sync"

@@ -23,7 +23,7 @@ for number, line in enumerate(source.read_text().splitlines(), start=1):
         key = stripped.split("=", 1)[0].strip()
         if not in_table and key not in owned:
             raise SystemExit(f"{source}:{number}: unowned top-level key {key}")
-        if key in owned:
+        if not in_table and key in owned:
             assignments[key] = line
 
 lines = destination.read_text().splitlines() if destination.exists() else []
